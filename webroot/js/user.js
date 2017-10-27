@@ -36,28 +36,23 @@ $(document).ready(function () {
         $visited.html(visited);
     },3000);
 
-    time_subscrib = setTimeout(function () {
-        popupSubscrib();
-    }, 15000);
+    // time_subscrib = setTimeout(function () {
+    //     popupSubscrib();
+    // }, 15000);
 
     slider();
-
-    //
-    // $(window).unload(function(){
-    //     alert("Пока, пользователь!");
-    // });
 
 })
 
 
 
 
-function closeIt()
-{
-    alert('oooooo');
-    return "Пожалуйста, не закрывайте меня!";
-}
-window.onbeforeunload = closeIt;
+// function closeIt()
+// {
+//     alert('oooooo');
+//     return "Пожалуйста, не закрывайте меня!";
+// }
+// window.onbeforeunload = closeIt;
 
 
 
