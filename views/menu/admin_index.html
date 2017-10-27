@@ -1,0 +1,175 @@
+<h1>Пункты меню</h1><br/>
+
+<form method="post" action="/admin/menu/add/" style="width: 900px;">
+    Название пункта меню: <br>
+    <input type="text" name="category_name" value="" class="form-control"  style="width: 500px; display: inline-block;" />
+    <br>
+    URL пункта меню: <br>
+    <input type="text" name="category_url" value="" class="form-control"  style="width: 500px; display: inline-block;" />
+    <br>
+    <input type="submit" class="btn btn-success" value="Добавить пункт меню"  style=" display: inline-block;" />
+</form>
+
+<br/>
+<?php   ?>
+<p>Код пункта меню, его название и URL:</p>
+<table  id="categories" class="table table-default" style="width: 100%;background: #fff;">
+    <tr  id="category_base" data_parent_id=""  class="category" style="display: none; width: 100%; "  >
+        <td class="categ_id"  style="vertical-align:middle; width: 5%; "></td>
+        <td class="categ_text"  style="vertical-align:middle; width: 25%; "></td>
+        <td class="categ_text_url"  style="vertical-align:middle; width: 400px; "></td>
+        <td align="right"  style="vertical-align:middle; width: 35%; ">
+            <button class="categ_add_subcat  btn btn-sm btn-default">добавить подпункт</button>
+            <button class="categ_edit  btn btn-sm btn-default">редактировать</button>
+            <button class="categ_delete  btn btn-sm btn-default">удалить</button>
+
+            <div class="categ_window"  style=" display: none; position: fixed; left: 15%; top: 10%; width: 70%; padding: 100px 30px 30px 30px; background-color: #fff; text-align: left; border-radius: 10px ; border: 1px solid #999; max-height: 85%; overflow: auto;   ">
+                <div style="position: fixed; left: 17%; top: calc(10% + 1px);  width: 65%; padding: 20px  0px  ; text-align: left; ;  height: 70px; background-color: #fff; border-bottom: 1px solid #999; ">
+                    <button class="categ_send_subcat  btn btn-sm btn-default">сохранить</button>
+                    <button class="categ_close_window  btn btn-sm btn-default">отмена</button>
+                </div>
+
+                <p>Название пункта меню:</p>
+                <input type="text" value=""  class="categ_input"  style="width: 100%; padding:5px; ">
+                <p>URL пункта меню:</p>
+                <input type="text" value=""  class="categ_input_url"  style="width: 100%; padding:5px; ">
+
+            </div>
+
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", categoriesGet);
+
+    function categoriesGet() {
+
+        $categories_wrapp = $('#categories');
+        $category_base_element = $('#category_base');
+
+        var data = {};
+        var uri = '/admin/menu/categories_get_ajax/';
+        myAjax(uri, data, categoriesReturn, categoriesReturnErr);
+
+        function categoriesReturn(data) {
+
+            if (data) {
+                $('tr[data_base_element="no_base_element"]').remove();
+            }
+
+            var data_return = JSON.parse(data);
+            var categories = data_return['categories_all'];
+            var categoriesLength = categories.length;
+
+            for (i = 0; i < categoriesLength; i++) {
+
+                $row = categories[i];
+
+                $categ_clone = $category_base_element.clone();
+
+                $categ_clone.attr('data_base_element', 'no_base_element');
+                $categ_clone.css('display', 'block');
+                $categ_clone.find('.categ_text').css('padding-left', 30 * $row['nested_level'] + 'px');
+                $categ_clone.find('.categ_text_url').css('padding-left', 30 * $row['nested_level'] + 'px');
+                $categ_clone.attr('id', $row['id']);
+                $categ_clone.attr('data_parent_id', $row['id_parent']);
+                $categ_clone.find('.categ_id').text($row['id']);
+                $categ_clone.find('.categ_text').text($row['menu_name']);
+                $categ_clone.find('.categ_text_url').text($row['menu_url']);
+
+                $categories_wrapp.append($categ_clone);
+            }
+
+            $('.category .categ_add_subcat').on('click', function () {
+                $('.categ_window').css('display', 'none');
+                $this_row = $(this).parent().parent();
+
+                new_or_edit_category($this_row, '');
+            });
+
+            $('.category .categ_close_window').on('click', function () {
+                $this_row = $(this).parent().parent().parent().parent();
+                $this_row.find('.categ_window').css('display', 'none');
+            });
+
+            $('.category .categ_send_subcat').on('click', function () {
+                $this_row = $(this).parent().parent().parent().parent();
+                var parent_id = $this_row.attr('id');
+                var id = $this_row.find('.categ_input').attr('id');
+                if (!id) {id = null}
+                var text = $this_row.find('.categ_input').val();
+                var text_url = $this_row.find('.categ_input_url').val();
+                $this_row.find('.categ_input').val('');
+                $this_row.find('.categ_input_url').val('');
+                text = text.trim();
+                text_url = text_url.trim();
+
+                if (text != '') {
+                    var data = {
+                        'category_name': text,
+                        'category_url': text_url,
+                        'parent_id': parent_id,
+                        'id': id
+                    };
+
+                    var uri = '/admin/menu/category_add_ajax/';
+                    myAjax(uri, data, categoriesReturn, categoriesReturnErr);
+                }
+
+            });
+
+
+            $('.category .categ_edit').on('click', function () {
+                $('.categ_window').css('display', 'none');
+                $this_row = $(this).parent().parent();
+
+                new_or_edit_category($this_row, 'edit');
+
+            });
+
+            $('.category .categ_delete').on('click', function () {
+                if (confirm('Вы действительно хотите удалить этот пункт меню и все дочерние пункты?')) {
+                    $this_row = $(this).parent().parent();
+                    var id = $this_row.attr('id');
+                    var uri = '/admin/menu/category_delete_ajax/' + id + '/';
+
+                    myAjax(uri, data, categoriesReturn, categoriesReturnErr);
+                }
+            });
+
+
+            function new_or_edit_category($this_row, mode) {
+                $this_row.find('.categ_window').css('display', 'block');
+                var text = $this_row.find('.categ_text').text();
+                var text_url = $this_row.find('.categ_text_url').text();
+                $this_row.find('.categ_input').val(text);
+                $this_row.find('.categ_input_url').val(text_url);
+
+                var id = $this_row.attr('id');
+
+                if (mode == 'edit') {
+                    $this_row.find('.categ_input').attr('id', id);
+                } else {
+                    $this_row.find('.categ_input').attr('id', '');
+                }
+
+            }
+
+        }
+
+        function categoriesReturnErr() {
+            alert('Error');
+        }
+
+    }
+</script>
+
+
+
+
+
+
+

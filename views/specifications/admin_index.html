@@ -1,0 +1,229 @@
+<h1>Список характеристик товаров (для всего магазина и всех товаров)</h1><br/>
+
+<form method="post" action="/admin/specifications/add/" style="width: 900px;">
+    <input type="text" name="specification_name" value="" class="form-control"  style="width: 500px; display: inline-block;" />
+    <input type="submit" class="btn btn-success" value="Добавить характеристику"  style=" display: inline-block;" />
+</form>
+
+<br/>
+<?php   ?>
+<p>Код характеристики и ее название:</p>
+<table  id="specifications" class="table table-default" style="width: 100%;background: #fff;">
+    <tr  id="specification_base" data_parent_id=""  class="specification" style="display: none; width: 100%; "  >
+        <input type="hidden" class="specific_json_input_hidden"  name="specification_data_json" value="" >
+        <td class="specific_id"  style="vertical-align:middle; width: 5%; "></td>
+        <td class="specific_text"  style="vertical-align:middle; width: 900px; "></td>
+        <td align="right"  style="vertical-align:middle; width: 45%; ">
+            <span class="specific_edit  btn btn-sm btn-default">редактировать/добавить опции</span>
+            <span class="specific_delete  btn btn-sm btn-default">удалить</span>
+        </td>
+    </tr>
+
+    <div class="specific_edit_window"  style=" display: none; position: fixed; left: 25%; top: 10%; width: 50%; padding: 100px 30px 30px 30px; background-color: #fff; text-align: left; border-radius: 10px ; border: 1px solid #999; max-height: 85%; overflow: auto; ">
+
+        <form id="specific_edit_form" action="" >
+
+            <div style="position: fixed; left: 27%; top: calc(10% + 1px);  width: 45%; padding: 20px  0px  ; text-align: left; ;  height: 70px; background-color: #fff; border-bottom: 1px solid #999; ">
+                <span class="specific_send  btn btn-sm btn-default">Сохранить</span>
+                <span class="specific_close_window  btn btn-sm btn-default">Закрыть</span>
+            </div>
+
+            Название характеристики: <br>
+            <input type="text" class="specific_input"  name="specification_name" value=""   style="width: 100%; padding:5px; ">
+            <input type="hidden" class="specific_input_hidden"  name="specification_id" value="" >
+
+            <hr>
+            <div>
+                Тип значений для опций (при сохранении данные с другим типом будут удалены): <br>
+                <a class="specific_type active btn btn-sm btn-link " data-specific-type="text"  style=" margin-left: 0px;  text-decoration: underline; ">Текст</a>
+                <a class="specific_type btn btn-sm btn-link "  data-specific-type="numeric"  style="  margin-left: 0px;   text-decoration: none;">Число</a>
+                <a class="specific_type btn btn-sm btn-link "  data-specific-type="timestamp"  style="  margin-left: 0px;   text-decoration: none; ">Дата</a>
+            </div>
+
+            <hr>
+            Добавить опцию: <br>
+            <input type="text" value=""  class="option_input"  style="width: 50%; padding:5px; ">
+            <span class="option_add_btn  btn btn-sm btn-default">Добавить</span>
+            <br>
+
+            <hr>
+            Опции: <br>
+            <div class="options_list">
+            </div>
+
+        </form>
+
+    </div>
+
+</table>
+
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", specificationsGet);
+
+    function specificationsGet() {
+
+        $specifications_wrapp = $('#specifications');
+        $specification_base_element = $('#specification_base');
+
+        var data = {};
+        var uri = '/admin/specifications/specifications_get_ajax/';
+        myAjax(uri, data, specificationsReturn, specificationsReturnErr);
+
+        function specificationsReturn(data) {
+
+            if (data) {
+                $('tr[data_base_element="no_base_element"]').remove();
+            }
+
+            var data_return = JSON.parse(data);
+            var specificationsLength = data_return.length;
+
+            for (i = 0; i < specificationsLength; i++) {
+
+                $row = data_return[i]['specification'];
+                $row_options = data_return[i]['options'];
+
+                $specific_clone = $specification_base_element.clone();
+
+                $specific_clone.attr('data_base_element', 'no_base_element');
+                $specific_clone.css('display', 'block');
+                $specific_clone.attr('id', $row['specification_id']);
+                $specific_clone.find('.specific_id').text($row['specification_id']);
+                $specific_clone.find('.specific_text').text($row['specification_name']);
+                $specific_clone.find('.specific_json_input_hidden').text(JSON.stringify(data_return[i]));
+
+                $specifications_wrapp.append($specific_clone);
+            }
+
+
+            $('.specification .specific_edit').on('click', function () {
+                $this_row = $(this).parent().parent();
+                $('.specific_edit_window').css('display', 'block');
+                var $row_json = $this_row.find('.specific_json_input_hidden').text();
+                var $row = JSON.parse($row_json)['specification'] ;
+                var $row_options = JSON.parse($row_json)['options'] ;
+                var text = $this_row.find('.specific_text').text();
+                $window_specific_input = $('.specific_edit_window .specific_input');
+                $window_specific_input.val(text);
+                var id = $this_row.attr('id');
+                $('.specific_edit_window .specific_input_hidden').val(id);
+
+                var specification_type = $row['specification_type'];
+
+                $specific_type_btn = $('.specific_edit_window .specific_type');
+                $specific_type_btn.css('text-decoration', 'none');
+                $specific_type_btn.removeClass('active');
+                $specific_type_btn_active = $('.specific_edit_window .specific_type[data-specific-type="' + specification_type + '"]');
+                $specific_type_btn_active.css('text-decoration', 'underline');
+                $specific_type_btn_active.addClass('active');
+
+                for (i = 0; i < $row_options.length; i++) {
+                    var option_value = $row_options[i]['option_value_' + specification_type];
+                    var $option_checkbox = $('<p><input type="checkbox"  class="option_checkbox active"  checked name="option[]" value="' + option_value.trim() + '"> ' + option_value.trim() + ' </p>');
+
+                    $option_checkbox.find('input').on('click', function () {
+                        $(this).toggleClass('active');
+                    });
+
+                    $options_list_div = $('.specific_edit_window .options_list');
+                    $options_list_div.append($option_checkbox);
+                }
+
+            });
+
+
+
+            $('.specification .specific_delete').on('click', function () {
+                if (confirmDelete()) {
+                    $this_row = $(this).parent().parent();
+                    var id = $this_row.attr('id');
+                    var uri = '/admin/specifications/specification_delete_ajax/' + id + '/';
+
+                    myAjax(uri, data, specificationsReturn, specificationsReturnErr);
+                }
+            });
+
+        }
+
+        function specificationsReturnErr() {
+            alert('Error');
+        }
+
+
+
+
+
+        $('.specific_edit_window .specific_close_window').on('click', function () {
+            $('.specific_edit_window').css('display', 'none');
+            $('.specific_edit_window .options_list').find('*').remove();
+        });
+
+        $('.specific_edit_window .specific_type').on('click', function () {
+            $specific_type_btn = $('.specific_edit_window .specific_type');
+            $specific_type_btn.css('text-decoration', 'none');
+            $specific_type_btn.removeClass('active');
+            $(this).css('text-decoration', 'underline');
+            $(this).addClass('active');
+        });
+
+        $('.specific_edit_window .option_add_btn').on('click', function () {
+            $window_option_input = $('.specific_edit_window .option_input');
+            var text = $window_option_input.val();
+            var $option_checkbox = $('<p><input type="checkbox"  class="option_checkbox active"  checked name="option[]" value="' + text.trim() + '"> ' + text.trim() + ' </p>');
+
+            $option_checkbox.find('input').on('click', function () {
+                $(this).toggleClass('active');
+            });
+
+            $options_list_div = $('.specific_edit_window .options_list');
+            $options_list_div.append($option_checkbox);
+
+
+        });
+
+        $('.specific_edit_window .specific_send').on('click', function () {
+
+            $('.specific_edit_window').css('display', 'none');
+            var specification_id = $('.specific_edit_window .specific_input_hidden').val();
+            var specification_type = $('.specific_edit_window .specific_type.active').attr('data-specific-type');
+            var specification_name = $('.specific_edit_window .specific_input').val();
+            specification_name = specification_name.trim();
+
+            var $options_checkbox = $('.specific_edit_window .option_checkbox');
+            var options_data = {};
+            $options_checkbox.each(function(indx, element){
+                if ($(this).hasClass('active')) {
+                    options_data[indx] = $(this).val() ;
+                }
+            });
+            options_data = ( Object.keys( options_data ).length > 0 ) ? options_data : '';
+            $('.specific_edit_window .options_list').find('*').remove();
+
+            if (specification_name != '') {
+                var specific_data = {};
+                specific_data = {
+                    'specification_id': specification_id,
+                    'specification_name': specification_name,
+                    'specification_type': specification_type,
+                    'options': options_data
+                }
+
+                var uri = '/admin/specifications/specification_add_ajax/';
+                myAjax(uri, specific_data, specificationsReturn, specificationsReturnErr);
+            }
+
+        });
+
+
+
+    }
+</script>
+
+
+
+
+
+
+

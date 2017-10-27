@@ -1,0 +1,14 @@
+
+
+        <div style="text-align: center;padding: 10px; font-size: 21px;"><b>ТОП-5 продуктов (комментируемые)</b></div>
+
+        <div class="articles_list__block">
+            <?php  if ($data['top_all']['articles']) {
+
+                    foreach( $data['top_all']['articles'] as $art ) { ?>
+            <div class="article_list__row">
+                <span class="article_list__title" ><a href="/article_page/view/<?= $art['art_id'] ?>" > <?= $art['art_title'] ?> </a></span>
+            </div>
+            <?php }  } ?>
+        </div>
+

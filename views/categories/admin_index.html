@@ -1,0 +1,235 @@
+<h1>Категории товаров</h1><br/>
+
+<form method="post" action="/admin/categories/add/" style="width: 900px;">
+    <input type="text" name="category_name" value="" class="form-control"  style="width: 500px; display: inline-block;" />
+    <input type="submit" class="btn btn-success" value="Добавить категорию"  style=" display: inline-block;" />
+</form>
+
+<br/>
+<?php   ?>
+<p>Код категории и ее название:</p>
+<table  id="categories" class="table table-default" style="width: 100%;background: #fff;">
+    <tr  id="category_base" data_parent_id=""  class="category" style="display: none; width: 100%; "  >
+        <td class="categ_id"  style="vertical-align:middle; width: 5%; "></td>
+        <td class="categ_text"  style="vertical-align:middle; width: 900px; "></td>
+        <td align="right"  style="vertical-align:middle; width: 35%; ">
+            <button class="categ_add_subcat  btn btn-sm btn-default">добавить подкатегорию</button>
+            <button class="categ_edit  btn btn-sm btn-default">редактировать</button>
+            <button class="categ_delete  btn btn-sm btn-default">удалить</button>
+
+            <div class="categ_window"  style=" display: none; position: fixed; left: 15%; top: 10%; width: 70%; padding: 100px 30px 30px 30px; background-color: #fff; text-align: left; border-radius: 10px ; border: 1px solid #999; max-height: 85%; overflow: auto;   ">
+                <div style="position: fixed; left: 17%; top: calc(10% + 1px);  width: 65%; padding: 20px  0px  ; text-align: left; ;  height: 70px; background-color: #fff; border-bottom: 1px solid #999; ">
+                    <button class="categ_send_subcat  btn btn-sm btn-default">сохранить</button>
+                    <button class="categ_close_window  btn btn-sm btn-default">отмена</button>
+                </div>
+
+                <p>Название категории:</p>
+                <input type="text" value=""  class="categ_input"  style="width: 100%; padding:5px; ">
+
+                <hr>
+                <p >Добавьте или удалите характеристики товаров, которые должны быть показаны в этой категории: </p>
+                <table class="specifications table table-default" width="900px">
+
+                    <tr class="specification specification_base" data_parent_id=""  style="display: none;  ">
+                        <td class="specif_check" width="40px" style="vertical-align:middle;"></td>
+                        <td class="specif_id" width="50px" style="vertical-align:middle;"></td>
+                        <td class="specif_text" width="410px" style="vertical-align:middle; "></td>
+                        <td align="right" width="400px" style="vertical-align:middle; ">
+                            <span class="specif_add  btn btn-sm btn-default">добавить характеристику в эту категорию</span>
+                            <span class="specif_delete  btn btn-sm btn-default">убрать из этой категории</span>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
+
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", categoriesGet);
+
+    function categoriesGet() {
+
+        $categories_wrapp = $('#categories');
+        $category_base_element = $('#category_base');
+
+        var data = {};
+        var uri = '/admin/categories/categories_get_ajax/';
+        myAjax(uri, data, categoriesReturn, categoriesReturnErr);
+
+        function categoriesReturn(data) {
+
+            if (data) {
+                $('tr[data_base_element="no_base_element"]').remove();
+            }
+
+            var data_return = JSON.parse(data);
+            var categories = data_return['categories_all'];
+            var categoriesLength = categories.length;
+            var specifications = data_return['specifications_all'];
+            var specificationsLength = specifications.length;
+
+            for (i = 0; i < categoriesLength; i++) {
+
+                $row = categories[i];
+
+                $categ_clone = $category_base_element.clone();
+
+                $categ_clone.attr('data_base_element', 'no_base_element');
+                $categ_clone.css('display', 'block');
+                $categ_clone.find('.categ_text').css('padding-left', 30 * $row['nested_level'] + 'px');
+                $categ_clone.attr('id', $row['id']);
+                $categ_clone.attr('data_parent_id', $row['parent_id']);
+                $categ_clone.find('.categ_id').text($row['id']);
+                $categ_clone.find('.categ_text').text($row['category_name']);
+
+                $categories_wrapp.append($categ_clone);
+            }
+
+            $('.category .categ_add_subcat').on('click', function () {
+                $('.categ_window').css('display', 'none');
+                $this_row = $(this).parent().parent();
+
+                new_or_edit_category($this_row, '');
+            });
+
+            $('.category .categ_close_window').on('click', function () {
+                $this_row = $(this).parent().parent().parent().parent();
+                $this_row.find('.categ_window').css('display', 'none');
+                $this_row.find('.specification:not(.specification_base)').css('display', 'none');
+            });
+
+            $('.category .categ_send_subcat').on('click', function () {
+                $this_row = $(this).parent().parent().parent().parent();
+                var parent_id = $this_row.attr('id');
+                var id = $this_row.find('.categ_input').attr('id');
+                if (!id) {id = null}
+                var text = $this_row.find('.categ_input').val();
+                $this_row.find('.categ_input').val('');
+                text = text.trim();
+
+                var specifications_of_category = [];
+                $this_row.find('.specification:not(.specification_base)').each(function(indx, element){
+                    if ($(this).hasClass('active')) {
+                        specifications_of_category[specifications_of_category.length] = $(this).find('.specif_id').text();
+                    }
+                });
+
+                if (text != '') {
+                    var data = {
+                        'category_name': text,
+                        'parent_id': parent_id,
+                        'id': id,
+                        'specifications_of_category': specifications_of_category
+                    };
+
+                    var uri = '/admin/categories/category_add_ajax/';
+                    myAjax(uri, data, categoriesReturn, categoriesReturnErr);
+                }
+
+            });
+
+
+            $('.category .categ_edit').on('click', function () {
+                $('.categ_window').css('display', 'none');
+                $this_row = $(this).parent().parent();
+
+                new_or_edit_category($this_row, 'edit');
+
+            });
+
+            $('.category .categ_delete').on('click', function () {
+                if (confirm('Вы действительно хотите удалить эту категорию и все дочерние категории?')) {
+                    $this_row = $(this).parent().parent();
+                    var id = $this_row.attr('id');
+                    var uri = '/admin/categories/category_delete_ajax/' + id + '/';
+
+                    myAjax(uri, data, categoriesReturn, categoriesReturnErr);
+                }
+            });
+
+
+            function new_or_edit_category($this_row, mode) {
+                $this_row.find('.categ_window').css('display', 'block');
+                var text = $this_row.find('.categ_text').text();
+                $this_row.find('.categ_input').val(text);
+
+                var id = $this_row.attr('id');
+
+                if (mode == 'edit') {
+                    $this_row.find('.categ_input').attr('id', id);
+                } else {
+                    $this_row.find('.categ_input').attr('id', '');
+                }
+
+                $specification_wrapp = $this_row.find('.specifications');
+                $specification_base_element = $this_row.find('.specification_base');
+
+                var specifications_of_category = data_return['specifications_of_category'][id];
+
+                for (j = 0; j < specificationsLength; j++) {
+
+                    $specif_row = specifications[j];
+
+                    $specif_clone = $specification_base_element.clone();
+
+                    $specif_clone.removeClass('specification_base');
+                    $specif_clone.css('display', 'block');
+                    $specif_clone.find('.specif_id').text($specif_row['specification_id']);
+                    $specif_clone.find('.specif_text').text($specif_row['specification_name']);
+
+                    if ( specifications_of_category.indexOf($specif_row['specification_id']) !== -1) {
+                        $specif_clone.find('.specif_check').html('&#10004;');
+                        $specif_clone.find('.specif_add').css('display', 'none');
+                        $specif_clone.find('.specif_delete').css('display', 'inline-block');
+                        $specif_clone.addClass('active');
+                    } else {
+                        $specif_clone.find('.specif_add').css('display', 'inline-block');
+                        $specif_clone.find('.specif_delete').css('display', 'none');
+                        $specif_clone.removeClass('active');
+                    }
+
+
+                    $specification_wrapp.append($specif_clone);
+                }
+
+                $this_row.find('.specif_add').on('click', function () {
+                    $this_specif_row = $(this).parent().parent();
+                    $this_specif_row.find('.specif_check').html('&#10004;');
+                    $this_specif_row.find('.specif_add').css('display', 'none');
+                    $this_specif_row.find('.specif_delete').css('display', 'inline-block');
+                    $this_specif_row.addClass('active');
+                });
+
+                $this_row.find('.specif_delete').on('click', function () {
+                    if (confirm('Вы действительно хотите отменить отображение этой характеристики товаров в этой категории?')) {
+                        $this_specif_row = $(this).parent().parent();
+                        $this_specif_row.find('.specif_check').html('');
+                        $this_specif_row.find('.specif_add').css('display', 'inline-block');
+                        $this_specif_row.find('.specif_delete').css('display', 'none');
+                        $this_specif_row.removeClass('active');
+                    }
+                });
+
+            }
+
+        }
+
+        function categoriesReturnErr() {
+            alert('Error');
+        }
+
+    }
+</script>
+
+
+
+
+
+
+

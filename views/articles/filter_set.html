@@ -1,0 +1,161 @@
+
+<div class="side_wrap left">
+    <?= $data['module_side_left'] ?>
+</div>
+
+<div class="main_content">
+
+
+    <h1>Filter of Product</h1><br/>
+
+
+    <p>
+    <form action="/articles/filter/" method="post">
+
+        <input type="submit" class="btn btn-success" value="Find"  style="width: 100px;" />&nbsp;
+        <br/>
+        <p>
+        <h2>Categories (use  "ctrl" and "shift" for multiple select):</h2> <br/>
+            <select name="categ[]"  multiple size="7" >
+                <?php
+                    if ( $data['filter']['categ_all']) {
+                    foreach($data['filter']['categ_all'] as $cat){
+                        $offset_str = '';
+                        for ($i = 0; $i < $cat['nested_level']; $i++ ){
+                             $offset_str = $offset_str  . '- ';
+                        }
+                        ?>
+                       <option value="<?= $cat['id'] ?>"  style="width: 400px;"> <?= $offset_str . $cat['category_name'] ?> </option>
+                <?php }  } ?>
+            </select>
+        </p>
+    <br/>
+        <p>
+        <h2>Цена :</h2> <br/>
+            От :
+            <input type="text" name="price_min" value=""> <br/>
+            До :
+            <input type="text" name="price_max" value=""> <br/>
+        </p>
+
+    <br/>
+        <p>
+        <h2>Тип акций :</h2> <br/>
+            <p>
+                <input type="checkbox" name="action_type[]"
+                    value="Скидка" > Скидка
+
+                <input type="checkbox" name="action_type[]"
+                    value="Распродажа" > Распродажа
+
+                <input type="checkbox" name="action_type[]"
+                    value="Акция" > Акция
+
+            </p>
+        </p>
+    <br/>
+        <p>
+            <h2>DateFrom:</h2> <br/>
+            <p>
+            YYYY:
+            <select name="yyyy" >
+                <option value="1999" selected> 1999 </option>
+                <?php
+                 for ($i = 2000; $i <= (int)date("Y"); $i++ ){  ?>
+                <option value="<?= $i ?>" > <?= $i ?> </option>
+                <?php  } ?>
+            </select>
+            MM:
+            <select name="mm" >
+                <?php
+                 for ($i = 1; $i < 13; $i++ ){  ?>
+                <option value="<?= $i ?>" > <?= $i ?> </option>
+                <?php  } ?>
+            </select>
+            DD:
+            <select name="dd" >
+                <?php
+                 for ($i = 1; $i < 32; $i++ ){  ?>
+                <option value="<?= $i ?>" > <?= $i ?> </option>
+                <?php  } ?>
+            </select>
+       </p>
+
+        <p>
+            <h2> DateTo:</h2> <br/>
+            <p>
+            YYYY:
+            <select name="yyyy_" >
+                <?php
+                 for ($i = 2000; $i < (int)date("Y"); $i++ ){  ?>
+                <option value="<?= $i ?>" > <?= $i ?> </option>
+                <?php  } ?>
+                <option value="<?=  (int)date('Y') ?>" selected > <?=  (int)date('Y') ?> </option>
+            </select>
+            MM:
+            <select name="mm_" >
+                <?php
+                 for ($i = 1; $i < 13; $i++ ){  ?>
+                <option value="<?= $i ?>"  <?= ($i == (int)date("m")) ? 'selected' : '' ?>  > <?= $i ?> </option>
+                <?php  } ?>
+            </select>
+            DD:
+            <select name="dd_" >
+                <?php
+                 for ($i = 1; $i < 32; $i++ ){  ?>
+                <option value="<?= $i ?>"  <?= ($i == (int)date("d")) ? 'selected' : '' ?>  > <?= $i ?> </option>
+                <?php  } ?>
+            </select>
+            <br/>
+
+            <p>
+                <h2>Характеристики :</h2>
+
+                <?php
+                    if (isset($data['specifications_all'])) {
+                        foreach( $data['specifications_all'] as $specific_item) {
+                            $specification_id = $specific_item['specification']['specification_id'];
+                            $specification_name = $specific_item['specification']['specification_name'];
+                            $specification_type = $specific_item['specification']['specification_type'];
+                            ?>
+                        <hr>
+                        <h3><?= $specification_name ?></h3>
+                        <input type="hidden" class="product_option_type"
+                               name="specification_value_type[<?= $specification_id ?>]" value="<?= $specification_type ?>">
+                        <div >
+                            <div class="options_of_specification_<?= $specification_id ?>">
+                                <?php
+                                  if ( isset($specific_item['options']) ) {
+
+                                    foreach ( $specific_item['options'] as $options_item ) {
+                                        $option_value_field = 'option_value_' . $specification_type;
+                                        $option_value = $options_item[$option_value_field];
+                                        $option_id = $options_item['option_id'];
+                                        $option_checkbox_name = 'options[' . $option_id . ']' ;
+                                        ?>
+                                    <p><input type="checkbox" class="product_option_checkbox" name="<?= $option_checkbox_name ?>"
+                                              value="<?= $option_value ?>"  > <?= $option_value ?>   </p>
+                                    <?php  }}  ?>
+
+                             </div>
+
+                        </div>
+
+                        <?php  }
+                    } ?>
+
+            </p>
+
+
+    </form>
+
+    </p>
+
+
+</div>
+
+
+<div class="side_wrap right">
+    <?= $data['module_side_right'] ?>
+</div>
+

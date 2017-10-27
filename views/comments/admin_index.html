@@ -1,0 +1,28 @@
+<h1>Комментарии к товарам</h1><br/>
+<p><b>Выберите товар для редактирования комментариев к нему:</b></p>
+
+<table class="table table-default" style="width: 100%; background: #fff; ">
+    <td  style="width: 40px;"> <b>ID </b></td>
+    <td  > <b>Продукт </b></td>
+    <td  style="width: 120px;"> <b>Неодобренных комментариев </b></td>
+    <td  style="width: 350px;"> <b>Одобрить/удалить все неодобренные комментарии </b></td>
+
+
+    <?php foreach( $data['articles'] as $article_data) { ?>
+        <tr>
+            <td><b><?= $article_data['id'] ?></b></td>
+            <td><b><a href="/admin/article_page/view/<?= $article_data['id']  ?>" ><?= $article_data['title'] ?> </a></b></td>
+            <td><b> <?= $article_data['comments_count']  ?> </b></td>
+            <td align="left" >
+                <a href="/admin/comments/publish_all_in_article/<?= $article_data['id'] ?>" ><button class="btn btn-sm btn-default">Одобрить все</button></a>
+                <a href="/admin/comments/delete_not_publish_comm_in_article/<?= $article_data['id'] ?>" onclick="return confirm('Удалить все неодобренные комментарии из этого товара?');"><button class="btn btn-sm btn-default">Удалить все неодобренные</button></a>
+            </td>
+        </tr>
+    <?php } ?>
+</table>
+
+<br/>
+
+
+
+

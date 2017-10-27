@@ -1,0 +1,113 @@
+<div class="side_wrap left">
+    <?= $data['module_side_left'] ?>
+</div>
+
+<div class="main_content">
+
+    <h1> Список продуктов </h1>
+
+    <?php if ( isset($data['selected_categ']) && $data['selected_categ'] != '' ) {
+            $categories_url_base = $data['categories_url_base'];
+            $categ_arr = [];
+            foreach($data['selected_categ'] as $category) {
+                $categ_arr[] = '<a  href="' . $categories_url_base .'?categ[]=' . $category['id'] . '" >' . $category["category_name"] . '</a>';
+    }
+    $categ_str = implode( " > " , $categ_arr );
+    ?>
+    <p><?= $categ_str ?></p>
+    <?php } ?>
+
+
+    <div class="articles_list__block">
+        <?php if ( isset($data['products']['articles']) ) {
+
+            $selected_category = isset($data['selected_categ']) ? $data['selected_categ'][count($data['selected_categ']) - 1]['id'] : '';
+            $products_count = count($data['products']['articles']) ;
+
+            for($i = 0; $i < $products_count; $i++) {
+                $product = $data['products']['articles'][$i];
+                ?>
+                <hr>
+                <div class="article_list__row">
+
+                    <div style="display: inline-block; width: 20%;">
+                        <img class="product__img"  src="/webroot/img/articles/<?= $product['images'][0]['full_name'] ?>" alt=""  style="width: 100%;">
+                    </div>
+                    <div style="display: inline-block; width: 68%; vertical-align: top;">
+                        <span class="article_list__title"  style="color: #000; font-size: 1.2em ;" ><a href="/article_page/view/<?= $product['art_id'] ?>/?categ[]=<?= $selected_category ?>" > <?= $product['art_title'] ?> </a></span>
+                        <br><br>
+
+                        <div style="display: inline-block; width: 100%; vertical-align: top; ">
+                            Цена: <b style="text-decoration: underline;"><?= $product['art_price'] ?></b> грн.
+                        </div>
+                    </div>
+
+                </div>
+
+             <?php } ?>
+
+        <?php  } ?>
+    </div>
+
+
+    <?php if (!isset($data['products']['articles']) || !count($data['products']['articles']) ) { ?>
+    <p>Нет продуктов</p>
+    <?php }  ?>
+
+    <hr>
+
+    <b>Страница: <?= $data['products']['pagination']['currentPage'] ?></b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+    <a href="<?= $data['products']['articles_url_base'] ?>?to_page=1&<?= $data['products']['filter']['filter_url'] ?>" ><button class="btn btn-sm btn-default">Первая</button></a>
+
+    <div class="pagin_list_block" style=" display: inline-block; position: relative;  ">
+        <button class="pagin_list_btn btn btn-sm btn-default" style="width: 50px;" >. . .</button>
+
+        <div class="pagin_list_wrap" data_show="" style=" display: none; position:absolute; left: 0px; bottom:100% ; overflow: scroll; max-height: 120px; width: 50px; border: 1px solid #aaa;" >
+            <ul class="pagin_list nav -navbar-nav" >
+                <?php
+                for ( $i = 1 ; $i <= $data['products']['pagination']['pagesCount'] ; $i++ ) { ?>
+                <li><b><a  href="<?= $data['products']['articles_url_base'] ?>?to_page=<?= $i ?>&<?= $data['products']['filter']['filter_url'] ?>" > <?= $i ?> </a></b></li>
+                <?php  } ?>
+            </ul>
+        </div>
+    </div>
+
+    <a href="<?= $data['products']['articles_url_base'] ?>?to_page=<?= $data['products']['pagination']['pagesCount'] ?>&<?= $data['products']['filter']['filter_url'] ?>" ><button class="btn btn-sm btn-default">Последняя (<?= $data['products']['pagination']['pagesCount'] ?>)</button></a>
+
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".pagin_list").menu();
+
+            $tab_block = $('.pagin_list_block');
+            $tab = $('.pagin_list_wrap');
+            $tab_btn = $('.pagin_list_btn');
+
+            $tab_block.on('mouseenter', function() {
+                timeId_1 = setTimeout(function () {
+                    $tab.show(200);
+                }, 50);
+            })
+            $tab_block.on('mouseleave', function() {
+                timeId_2 = setTimeout(function () {
+                    $tab.hide(200);
+                }, 50);
+            })
+        })
+
+    </script>
+
+
+
+</div>
+
+
+<div class="side_wrap right">
+    <?= $data['module_side_right'] ?>
+</div>
+
+

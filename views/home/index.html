@@ -1,0 +1,144 @@
+<div class="side_wrap left">
+    <?= $data['module_side_left'] ?>
+</div>
+
+<div class="main_content">
+
+    <?php if ($data['images']) { ?>
+
+        <div id="myCarousel" class="slider__list carousel slide" data-ride="carousel"  >
+            <?php $count = count($data['images']); ?>
+            <ol class="carousel-indicators">
+                <?php for($i = 0; $i < $count; $i++) { ?>
+                <li data-target="#myCarousel" data-slide-to="<?= $i ?>" <?php if ($i == 0) {echo ' class="active" ' ;}; ?>  ></li>
+                <?php } ?>
+            </ol>
+
+            <div class="carousel-inner" >
+
+                <?php for($i = 0; $i < $count && $i < 4 ; $i++) { ?>
+                    <div class="slider__item item <?php if ($i == 0) { echo 'active'; }; ?>  "   style="">
+                        <img class="slider__img"  src="/webroot/img/articles/<?= $data['images'][$i]['img'] ?>" alt="">
+                        <div class="container">
+                            <div class="carousel-caption">
+                                <p><a  href="/article_page/view/<?= $data['images'][$i]['article']['art_id'] ?>/"><?= $data['images'][$i]['article']['art_title'] ?></a></p>
+                                <p><?= $data['images'][$i]['article']['art_desc'] ?></p>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
+
+            </div>
+
+            <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left"></span>
+            </a>
+            <a class="right carousel-control" href="#myCarousel" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+
+        </div>
+        <script>
+            $('.carousel').carousel({
+                interval: 5000,
+                pause: 'hover',
+                wrap: true
+            });
+        </script>
+
+    <?php } ?>
+
+    <h1> Продукты </h1>
+
+    <?php if ( isset($data['categories'])) {
+            foreach($data['categories'] as $category) {
+                $categories_url_base = $data['categories_url_base']; ?>
+
+                <hr>
+                 <h2><a href="<?= $categories_url_base ?>?categ[]=<?= $category['category']['id'] ?>"><?= $category['category']['category_name'] ?></a></h2>
+
+                 <?php if (isset($category['products_actions']['articles']) && count($category['products_actions']['articles'])) {
+
+                    $products_actions_count = count($category['products_actions']['articles']);
+                    $products_actions_limit = ($products_actions_count < 2) ? $products_actions_count : 2;
+
+                    for($i = 0; $i < $products_actions_limit; $i++) {
+                        $product = $category['products_actions']['articles'][$i];
+                        ?>
+                          <hr>
+                        <div class="article_list__row">
+
+                            <div style="display: inline-block; width: 20%;">
+                                <img class="product__img"  src="/webroot/img/articles/<?= $product['images'][0]['full_name'] ?>" alt=""  style="width: 100%;">
+                            </div>
+                            <div style="display: inline-block; width: 68%; vertical-align: top;">
+                                <i style="color: #f00; font-size: 0.9em ;"> Акция!!! </i>
+                                <span class="article_list__title"  style="color: #000; font-size: 1.2em ;" ><a href="/article_page/view/<?= $product['art_id'] ?>/?categ[]=<?= $category['category']['id'] ?>" > <?= $product['art_title'] ?> </a></span>
+                                <br><br>
+
+                                <div style="display: inline-block; width: 100%; vertical-align: top; ">
+                                    <?= $product['art_desc'] ?>
+                                </div>
+
+                                <br><br>
+                                <div style="display: inline-block; width: 100%; vertical-align: top; ">
+                                    <?php $new_price = (int)$product['art_price'] * ( 1 + (int)$product['art_action_price'] / 100 ) ; ?>
+                                    Цена: <b style="text-decoration: line-through;"><?= $product['art_price'] ?></b> <b style="text-decoration: underline;"><?= $new_price ?></b> грн.
+                                </div>
+                            </div>
+
+                        </div>
+
+                     <?php } ?>
+
+                 <?php }  ?>
+
+                 <?php if (isset($category['products']['articles']) && count($category['products']['articles'])) {
+
+                    $products_count = count($category['products']['articles']) ;
+                    $products_limit = (isset($products_actions_limit)) ? 5 - $products_actions_limit : 5 ;
+
+                    for($i = 0; $i < $products_count && $i < $products_limit; $i++) {
+                        $product = $category['products']['articles'][$i];
+                        ?>
+                          <hr>
+                        <div class="article_list__row">
+
+                            <div style="display: inline-block; width: 20%;">
+                                <img class="product__img"  src="/webroot/img/articles/<?= $product['images'][0]['full_name'] ?>" alt=""  style="width: 100%;">
+                            </div>
+                            <div style="display: inline-block; width: 68%; vertical-align: top;">
+                                <span class="article_list__title"  style="color: #000; font-size: 1.2em ;" ><a href="/article_page/view/<?= $product['art_id'] ?>/?categ[]=<?= $category['category']['id'] ?>" > <?= $product['art_title'] ?> </a></span>
+                                <br><br>
+
+                                <div style="display: inline-block; width: 100%; vertical-align: top; ">
+                                    <?= $product['art_desc'] ?>
+                                </div>
+
+                                <br><br>
+                                <div style="display: inline-block; width: 100%; vertical-align: top; ">
+                                    Цена: <b style="text-decoration: underline;"><?= $product['art_price'] ?></b> грн.
+                                </div>
+                            </div>
+
+                        </div>
+
+                     <?php } ?>
+
+                 <?php }  ?>
+
+                 <?php if (!isset($products_actions_count) && !isset($products_count) ) { ?>
+                    <p>Нет продуктов</p>
+                 <?php }  ?>
+
+             <?php } ?>
+
+    <?php } ?>
+
+    <hr>
+
+</div>
+
+<div class="side_wrap right">
+    <?= $data['module_side_right'] ?>
+</div>
